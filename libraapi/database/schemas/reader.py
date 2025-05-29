@@ -3,19 +3,19 @@ from pydantic import BaseModel
 from pydantic import EmailStr
 
 
-class GetByIDReader(BaseModel):
+class GetByIDReaderScheme(BaseModel):
     id: int
 
-class GetByEmailReaderSchema(BaseModel):
+class GetByEmailReaderScheme(BaseModel):
     email: EmailStr
     
-class GetByFullnameReaderSchema(BaseModel):
+class AddReaderScheme(GetByEmailReaderScheme):
     fullname: str
-
-class AddReaderSchema( 
-        GetByEmailReaderSchema, 
-        GetByFullnameReaderSchema
+    
+class GetReaderScheme(
+        GetByIDReaderScheme,
+        AddReaderScheme
     ):
-    pass
-    
-    
+    model_config = {
+        'from_attributes': True
+    }

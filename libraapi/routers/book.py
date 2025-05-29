@@ -84,7 +84,7 @@ async def add_book(schema: AddBookSchemas, db: AsyncSession = Depends(async_get_
         )
 
 @router.get("/book/")
-async def get_book(db: AsyncSession = Depends(async_get_db)):
+async def get_books(db: AsyncSession = Depends(async_get_db)):
     """
     Получает список всех книг из базы данных.
 
@@ -127,7 +127,7 @@ async def get_book(db: AsyncSession = Depends(async_get_db)):
         
         
 @router.get("/book/{book_id}")
-async def get_book(
+async def get_book_by_id(
         book_id: int = Path(..., gt=0),
         db: AsyncSession = Depends(async_get_db)
     ):
