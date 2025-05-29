@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.book import router as book_router
+from routers.reader import router as reader_routers
 
 from database.db import engine
 from database.db import Base
@@ -13,6 +14,8 @@ app = FastAPI()
 
 """Подключаем роутеры"""
 app.include_router(book_router, tags=["Книги"])
+app.include_router(reader_routers, tags=["Читатели"])
+
 
 """Настройка корс"""
 app.add_middleware(
