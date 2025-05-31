@@ -25,41 +25,7 @@ from typing import Optional
 
 router = APIRouter()
 
-async def get_current_user(token: str = Depends(HTTPBearer())) -> Optional[dict]:
-    try:
-        payload = decode_jwt(token.credentials)
-        if payload.get("type") == "refresh":
-            raise HTTPException(status_code=403, detail="Cannot use refresh token as access token")
-        return payload
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-async def get_user_by_email(
-        db: AsyncSession, 
-        scheme: LibrarianByEmailScheme
-    ):
-    result = await db.execute(
-        select(LibrarianModel).where(LibrarianModel.email == scheme.email)
-    )
-    return result.scalar_one_or_none()
-
-async def verify_user(is_user):
-    if is_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
-    if not is_user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="User not verified"
-        )
-    if not is_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="User banned"
-        )
-    
 
 
 @router.post("/librarian/register/")

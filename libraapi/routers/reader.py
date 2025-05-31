@@ -17,7 +17,7 @@ from database.schemas.reader import GetByEmailReaderScheme
 from database.schemas.reader import GetReaderScheme
 from database.models.reader import ReaderModel
 
-
+from utils.validate import get_current_user
 
 router = APIRouter()
 
@@ -25,7 +25,8 @@ router = APIRouter()
 @router.post("/reader/")
 async def add_reader(
         scheme: AddReaderScheme, 
-        db: AsyncSession = Depends(async_get_db)
+        db: AsyncSession = Depends(async_get_db),
+        current_user: dict = Depends(get_current_user)
     ):
     """
     Добавляет нового читателя в систему.
