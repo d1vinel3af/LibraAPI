@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import insert
@@ -13,10 +14,52 @@ from sqlalchemy import select
 from dependencies.db import async_get_db
 from utils.hashed import Hashed
 from database.schemas.librarian import RegisterLibrarianScheme
+from database.schemas.librarian import LoginLibrarianScheme
+from database.schemas.librarian import LibrarianByEmailScheme
+from database.schemas.token import JWTScheme
 from database.models.librarian import LibrarianModel
 
+from utils.jwt_utils import decode_jwt, encode_jwt
+
+from typing import Optional
 
 router = APIRouter()
+
+async def get_current_user(token: str = Depends(HTTPBearer())) -> Optional[dict]:
+    try:
+        payload = decode_jwt(token.credentials)
+        if payload.get("type") == "refresh":
+            raise HTTPException(status_code=403, detail="Cannot use refresh token as access token")
+        return payload
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+async def get_user_by_email(
+        db: AsyncSession, 
+        scheme: LibrarianByEmailScheme
+    ):
+    result = await db.execute(
+        select(LibrarianModel).where(LibrarianModel.email == scheme.email)
+    )
+    return result.scalar_one_or_none()
+
+async def verify_user(is_user):
+    if is_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    if not is_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="User not verified"
+        )
+    if not is_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="User banned"
+        )
+    
 
 
 @router.post("/librarian/register/")
@@ -64,6 +107,39 @@ async def librarian_register(
         )
         
         
-@router.post("/librarian/login/")
-async def librarian_login():
-    ...
+@router.post("/librarian/login/", response_model=JWTScheme)
+async def librarian_login(
+        scheme: LoginLibrarianScheme,
+        db: AsyncSession = Depends(async_get_db)
+    ):
+    stmt = select(LibrarianModel).where(LibrarianModel.email == scheme.email)
+    is_librarian = await db.execute(statement=stmt)
+    result = is_librarian.scalar_one_or_none()
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Неверные данные"
+        )
+    
+    hpwd = await Hashed().verify_password(
+        password=scheme.password,
+        hashed_password=result.password,
+    )
+    
+    if not hpwd:
+        raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="Invalid user"
+            )
+    
+    access_token = encode_jwt(
+        payload={
+            "sub": scheme.email,
+            "type": "access"
+        }
+    )
+    
+    return JWTScheme(
+        access_token=access_token,
+        token_type="Bearer",
+    )
