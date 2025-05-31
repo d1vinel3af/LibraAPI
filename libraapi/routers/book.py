@@ -19,12 +19,18 @@ from database.schemas.book import UpdateBookSchemas
 from database.models.book import BookModels
 
 from dependencies.db import async_get_db
+from utils.validate import get_current_user
+
 
 router = APIRouter()
 
 
 @router.post("/book/")
-async def add_book(schema: AddBookSchemas, db: AsyncSession = Depends(async_get_db)):
+async def add_book(
+    schema: AddBookSchemas, 
+    db: AsyncSession = Depends(async_get_db),
+    current_user: dict = Depends(get_current_user)
+    ):
     """
     Добавляет новую книгу в каталог.
 
@@ -180,7 +186,8 @@ async def get_book_by_id(
 @router.delete("/book/{book_id}")
 async def delete_book(
         book_id: int = Path(..., gt=0),
-        db: AsyncSession = Depends(async_get_db)
+        db: AsyncSession = Depends(async_get_db),
+        current_user: dict = Depends(get_current_user)
     ):
     """
     Удаляет книгу из бд.
@@ -226,7 +233,8 @@ async def delete_book(
 async def update_book(
         schema: UpdateBookSchemas,
         book_id: int = Path(..., gt=0),
-        db: AsyncSession = Depends(async_get_db)
+        db: AsyncSession = Depends(async_get_db),
+        current_user: dict = Depends(get_current_user)
     ):
     
     """

@@ -77,7 +77,8 @@ async def add_reader(
 @router.post("/reader/data")
 async def get_reader_by_email(
         scheme: GetByEmailReaderScheme,
-        db: AsyncSession = Depends(async_get_db)
+        db: AsyncSession = Depends(async_get_db),
+        current_user: dict = Depends(get_current_user)
     ):
     """
     Получает информацию о читателе по его email.
@@ -139,7 +140,8 @@ async def get_reader_by_email(
 @router.delete("/reader/{reader_id}")
 async def delete_reader_by_id(
         reader_id: int,
-        db: AsyncSession = Depends(async_get_db)
+        db: AsyncSession = Depends(async_get_db),
+        current_user: dict = Depends(get_current_user)
     ):
     
     """
