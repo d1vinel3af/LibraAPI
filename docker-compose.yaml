@@ -1,7 +1,18 @@
 
 services:
+
+  app:
+    build: .
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    depends_on:
+     - postgres
+    restart: unless-stopped
+
+
   postgres:
-    image: postgres:latest
+    image: postgres
     container_name: postgres_container
     environment:
       POSTGRES_USER: myuser

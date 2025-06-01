@@ -17,6 +17,8 @@ https://docs.google.com/document/d/1ej6Qdhf65VP6d8rPCti2wdiD680p91UKu6GQS7i-IKs/
 2. Запускается всё через docker compose
     docker compose up --build
 
+    http://127.0.0.1:8000/docs <- ссылка на документацию
+
 
 3. Фичи которые можно реализовать, но из-за того что я могу сам себя передумать, реализовывать не стал
     - Использовать elasticsearch для поиска по описанию книги
