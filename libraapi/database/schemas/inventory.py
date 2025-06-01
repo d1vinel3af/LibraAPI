@@ -14,9 +14,6 @@ class IssueBookScheme(
     ):
     ...
 
-class ReturnBookScheme(
-        InventoryBaseScheme,
-        InventoryReaderByIDScheme,
-    ):
+class ReturnBookScheme(InventoryBaseScheme):
     id: int
-    date_of_return: datetime
+    

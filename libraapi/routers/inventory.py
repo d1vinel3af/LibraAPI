@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import status
@@ -105,5 +107,54 @@ async def issue_book(
         status_code=status.HTTP_200_OK,
         content={
             "issue": "Типа выдана книга"
+        }
+    )
+    
+@router.post("/inventory/return/")
+async def return_book(
+        scheme: ReturnBookScheme,
+        db: AsyncSession = Depends(async_get_db),
+        current_user: dict = Depends(get_current_user)
+    ):
+    
+    try:
+        # Записываем, что книгу вернули
+        stmt_return_book = update(InventoryDataModel)\
+                        .where(InventoryDataModel.id == scheme.id)\
+                        .values(date_of_return = datetime.now())
+        await db.execute(statement=stmt_return_book)
+        await db.commit()
+        
+        
+        # Возвращаем книгу на "полку"
+        stmt_amount_book = select(BookModels).where(BookModels.id == scheme.book_id)
+        inject_book = await db.execute(statement=stmt_amount_book)
+        result_book = inject_book.scalar_one_or_none()
+        
+        
+        new_amount_book = int(result_book.amount) + 1
+        
+        stmt_amount_book = update(BookModels)\
+                        .where(BookModels.id == scheme.book_id)\
+                        .values(amount = new_amount_book)
+        await db.execute(statement=stmt_amount_book)
+        await db.commit()
+
+        
+    
+    
+    except Exception as error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": f"Непредвиденная ошибка: {error}"
+            }
+        )
+    
+    
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "return": "Типа книга забрана"
         }
     )
