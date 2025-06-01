@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.book import router as book_router
 from routers.reader import router as reader_router
 from routers.librarian import router as librarian_router
+from routers.inventory import router as inventory_router
 
 from database.db import engine
 from database.db import Base
@@ -17,6 +18,7 @@ app = FastAPI()
 app.include_router(book_router, tags=["Книги"])
 app.include_router(reader_router, tags=["Читатели"])
 app.include_router(librarian_router, tags=["Библиотекари"])
+app.include_router(inventory_router, tags=["Инвентаризация"])
 
 
 """Настройка корс"""
